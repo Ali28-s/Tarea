@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Reflexión</title>
+
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+<header>
+<h1>Shift Left Security</h1>
+
+<nav>
+<ul>
+<li><a href="index.html">Inicio</a></li>
+<li><a href="introduccion.html">Introducción</a></li>
+<li><a href="definicion.html">Definición</a></li>
+<li><a href="problema.html">Que Soluciona</a></li>
+<li><a href="sprints.html">Sprints Ágiles</a></li>
+<li><a href="ejemplo.html">Ejercicio</a></li>
+
+<li><a href="reflexion.html">Resultados</a></li>
+<li><a href="analisis.html">Análisis</a></li>
+<li><a href="referencias.html">Referencias</a></li>
+</ul>
+</nav>
+</header>
+
+<main>
+
+<h2>Resultados</h2>
+<table>
+<tr>
+<th></th>
+<th>Vulnerabilidad</th>
+<th>Evidencia en el código</th>
+<th>OWASP Top 10</th>
+<th>Tipo de prueba</th>
+<th>¿Manual / Automática?</th>
+</tr>
+<tr>
+<td>1</td>
+<td>Recorrido de ruta</td>
+<td>Uso directo de <strong>fileName</strong> sin validación en <code>new File("/uploads/" + fileName)</code></td>
+<td>A01:2021 Broken Access Control</td>
+<td>SAST / Control de flujo de autorización</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Escritura insegura de archivos</td>
+<td>Escritura directa desde la entrada del usuario sin control</td>
+<td>A01:2021 Broken Access Control</td>
+<td>SAST / Revisión de manejo de archivos</td>
+<td>Automática y manual</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Falta de validación de entrada</td>
+<td><strong>request.getParameter("fileName")</strong> se usa sin verificar formato o contenido</td>
+<td>A04:2021 Insecure Design</td>
+<td>SAST / Validación de entrada</td>
+<td>Automática</td>
+</tr>
+</table>
+
+<h2><br>Propuesta de Código seguro</h2>
+<pre>
+String fileName = request.getParameter("fileName");
+
+String safeFileName = new File(fileName).getName();
+
+if (!safeFileName.matches(".*\\.(jpg|jpeg|png|pdf)$")) {
+    throw new SecurityException("Tipo de archivo no permitido");
+}
+
+File uploadDir = new File("/uploads/").getCanonicalFile();
+File file = new File(uploadDir, safeFileName);
+
+if (!file.getCanonicalPath().startsWith(uploadDir.getCanonicalPath())) {
+    throw new SecurityException("Acceso fuera del directorio permitido");
+}
+
+byte[] data = request.getInputStream().readAllBytes();
+if (data.length > 5 * 1024 * 1024) { // 5 MB
+    throw new SecurityException("Archivo demasiado grande");
+}
+
+if (file.exists()) {
+    throw new SecurityException("El archivo ya existe");
+}
+
+FileOutputStream fos = new FileOutputStream(file);
+fos.write(data);
+fos.close();
+</pre>
+
+</main>
+
+</body>
+</html>

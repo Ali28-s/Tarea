@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ejemplos</title>
+
+    <link rel="stylesheet" href="css/estilos.css">
+</head>
+
+<body>
+
+<header>
+
+    <h1>Shift Left Security</h1>
+
+ <nav>
+<ul>
+<li><a href="index.html">Inicio</a></li>
+<li><a href="introduccion.html">Introducción</a></li>
+<li><a href="definicion.html">Definición</a></li>
+<li><a href="problema.html">Que Soluciona</a></li>
+<li><a href="sprints.html">Sprints Ágiles</a></li>
+<li><a href="ejemplo.html">Ejercicio</a></li>
+
+<li><a href="reflexion.html">Resultados</a></li>
+<li><a href="analisis.html">Análisis</a></li>
+<li><a href="referencias.html">Referencias</a></li>
+</ul>
+</nav>
+
+</header>
+
+<main>
+
+    <h2>Ejercicio</h2>
+
+    <h3>Subida Insegura de Archivos</h3>
+
+    <p>
+        <br>El siguiente código permite cargar archivos sin validar el nombre,
+        extensión o contenido, lo que puede representar un riesgo de seguridad.
+    <br></p>
+
+    <pre><br>
+String fileName = request.getParameter("fileName");
+
+File file = new File("/uploads/" + fileName);
+FileOutputStream fos = new FileOutputStream(file);
+
+fos.write(request.getInputStream().readAllBytes());
+fos.close();
+    </pre>
+
+<h3>Problemas a Solucionar</h3>
+
+<table><br>
+<tr>
+<th></th>
+<th>Problema</th>
+<th>¿Por qué es un problema?</th>
+<th>Ejemplo de ataque</th>
+</tr>
+<tr>
+<td>1</td>
+<td>Path Traversal</td>
+<td>El parámetro <code>fileName</code> se concatena directamente a la ruta <code>/uploads/</code>. Un atacante puede usar <code>../</code> para salir del directorio permitido.</td>
+<td><code>fileName = "../../etc/passwd"</code> → accede a archivos del sistema.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Sin validación de extensión</td>
+<td>No se verifica que el archivo subido sea de un tipo permitido (ej: imagen, PDF).</td>
+<td><code>fileName = "virus.exe"</code> → se sube un ejecutable malicioso.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Sobrescritura arbitraria</td>
+<td><code>FileOutputStream(file)</code> no verifica si el archivo ya existe. Sobrescribe cualquier archivo sin preguntar.</td>
+<td><code>fileName = "configuracion.properties"</code> → destruye configuración crítica.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Denegación de servicio (DoS)</td>
+<td><code>readAllBytes()</code> carga todo el archivo en memoria sin límite de tamaño.</td>
+<td>Enviar un archivo de 10 GB → colapsa la memoria del servidor.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Sin control de contenido real</td>
+<td>Solo confía en el nombre del archivo, no verifica el contenido (magic bytes).</td>
+<td><code>foto.jpg</code> pero realmente es un script malicioso.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Sin manejo de errores</td>
+<td>Si algo falla (disco lleno, ruta inválida), no hay control de excepciones.</td>
+<td>El servidor puede mostrar información interna en mensajes de error.</td>
+</tr>
+</table>
+
+</main>
+
+<script src="js/script.js"></script>
+
+</body>
+</html>
