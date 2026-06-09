@@ -44,12 +44,24 @@
     <br></p>
 
     <pre><br>
+// 1. Se recibe el nombre del archivo directamente desde el usuario sin ninguna validación
+// Esto es peligroso porque el usuario puede escribir cualquier cosa
 String fileName = request.getParameter("fileName");
 
+// 2. Se construye la ruta concatenando la carpeta base con el nombre que dio el usuario
+// Si el usuario escribe "../../../etc/passwd", la ruta queda "/uploads/../../../etc/passwd"
+// Esto permite salir de la carpeta uploads y acceder a archivos del sistema (Path Traversal)
 File file = new File("/uploads/" + fileName);
+
+// 3. Se abre el archivo para escribir. Si ya existe, lo borra sin preguntar
+// Un atacante puede sobrescribir archivos importantes del sistema
 FileOutputStream fos = new FileOutputStream(file);
 
+// 4. Se lee TODO el contenido que sube el usuario de una sola vez
+// Si el archivo pesa 10 GB, el servidor intentará meter 10 GB en su memoria RAM y colapsará
 fos.write(request.getInputStream().readAllBytes());
+
+// 5. Se cierra el archivo. Si ocurrió un error antes, esta línea no se ejecuta
 fos.close();
     </pre>
 
