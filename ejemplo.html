@@ -53,10 +53,10 @@ File file = new File("/uploads/" + fileName);
 // Se abre el archivo para escribir. Si ya existe, lo borra sin preguntar
 FileOutputStream fos = new FileOutputStream(file);
 
-// 4. Se lee TODO el contenido que sube el usuario de una sola vez
+// Se lee TODO el contenido que sube el usuario de una sola vez
 fos.write(request.getInputStream().readAllBytes());
 
-// 5. Se cierra el archivo. Si ocurrió un error antes, esta línea no se ejecuta
+// Se cierra el archivo. Si ocurrió un error antes, esta línea no se ejecuta
 fos.close();
     </pre>
 
