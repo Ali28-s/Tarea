@@ -68,55 +68,36 @@
 
 <h2><br>Propuesta de Código seguro</h2>
 <pre>
-// ===== PASO 1: LIMPIAR EL NOMBRE DEL ARCHIVO =====
-// Se extrae SOLO el nombre del archivo, eliminando cualquier ruta (../, ./ , etc.)
-// El usuario escribe "../../../etc/passwd" → queda "passwd"
-// Con esto se bloquea el Path Traversal
+String fileName = request.getParameter("fileName");
+
+// 1. Sanitizar el nombre del archivo (evitar Path Traversal)
 String safeFileName = new File(fileName).getName();
 
-// ===== PASO 2: VALIDAR LA EXTENSIÓN =====
-// Se verifica que el archivo termine en una extensión segura (solo imágenes y PDF)
-// Si el usuario intenta subir "virus.exe", se rechaza inmediatamente
+// 2. Validar que solo tenga extensiones permitidas
 if (!safeFileName.matches(".*\\.(jpg|jpeg|png|pdf)$")) {
-    throw new SecurityException("Tipo de archivo no permitido. Use: jpg, jpeg, png o pdf");
+    throw new SecurityException("Tipo de archivo no permitido");
 }
 
-// ===== PASO 3: ESTABLECER LA CARPETA BASE SEGURA =====
-// Se obtiene la ruta real y absoluta de la carpeta uploads
-// Esto evita trucos con enlaces simbólicos o rutas relativas
+// 3. Usar ruta base absoluta y normalizada
 File uploadDir = new File("/uploads/").getCanonicalFile();
-
-// ===== PASO 4: CONSTRUIR LA RUTA FINAL =====
-// Se junta la carpeta base con el nombre ya limpio
 File file = new File(uploadDir, safeFileName);
 
-// ===== PASO 5: DOBLE VALIDACIÓN DE RUTA (capa de seguridad extra) =====
-// Se verifica que la ruta final realmente empiece con la carpeta permitida
-// Si por algún truco el archivo apunta fuera, se rechaza
+// 4. Verificar que el archivo quede dentro del directorio permitido
 if (!file.getCanonicalPath().startsWith(uploadDir.getCanonicalPath())) {
     throw new SecurityException("Acceso fuera del directorio permitido");
 }
 
-// ===== PASO 6: CONTROL DE TAMAÑO (evitar Denegación de Servicio) =====
-// Se lee el contenido del archivo
+// 5. Control de tamaño máximo (evitar DoS)
 byte[] data = request.getInputStream().readAllBytes();
-
-// Se verifica que no supere los 5 MB
-// Si un atacante intenta subir 10 GB, se rechaza antes de causar daño
-if (data.length > 5 * 1024 * 1024) { // 5 MB = 5.242.880 bytes
-    throw new SecurityException("El archivo es demasiado grande. Tamaño máximo: 5 MB");
+if (data.length > 5 * 1024 * 1024) { // 5 MB
+    throw new SecurityException("Archivo demasiado grande");
 }
 
-// ===== PASO 7: EVITAR SOBRESCRITURA =====
-// Se verifica si el archivo ya existe en el servidor
-// Si ya existe, se rechaza la subida para no destruir información importante
+// 6. Evitar sobrescritura
 if (file.exists()) {
-    throw new SecurityException("El archivo ya existe. No se permite sobrescribir");
+    throw new SecurityException("El archivo ya existe");
 }
 
-// ===== PASO 8: ESCRIBIR EL ARCHIVO (solo si pasó todas las validaciones) =====
-// Se abre el archivo, se escribe el contenido y se cierra
-// En este punto, todo el contenido ya está validado y es seguro
 FileOutputStream fos = new FileOutputStream(file);
 fos.write(data);
 fos.close();
