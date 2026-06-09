@@ -70,30 +70,30 @@
 <pre>
 String fileName = request.getParameter("fileName");
 
-// 1. Sanitizar el nombre del archivo (evitar Path Traversal)
+// Toma el nombre del archivo (evitar Path Traversal)
 String safeFileName = new File(fileName).getName();
 
-// 2. Validar que solo tenga extensiones permitidas
+// Validar que solo tenga extensiones permitidas
 if (!safeFileName.matches(".*\\.(jpg|jpeg|png|pdf)$")) {
     throw new SecurityException("Tipo de archivo no permitido");
 }
 
-// 3. Usar ruta base absoluta y normalizada
+// Usar ruta base absoluta y normalizada
 File uploadDir = new File("/uploads/").getCanonicalFile();
 File file = new File(uploadDir, safeFileName);
 
-// 4. Verificar que el archivo quede dentro del directorio permitido
+// Verificar que el archivo quede dentro del directorio permitido
 if (!file.getCanonicalPath().startsWith(uploadDir.getCanonicalPath())) {
     throw new SecurityException("Acceso fuera del directorio permitido");
 }
 
-// 5. Control de tamaño máximo (evitar DoS)
+// Control de tamaño máximo (evitar DoS)
 byte[] data = request.getInputStream().readAllBytes();
 if (data.length > 5 * 1024 * 1024) { // 5 MB
     throw new SecurityException("Archivo demasiado grande");
 }
 
-// 6. Evitar sobrescritura
+// Evitar sobrescritura
 if (file.exists()) {
     throw new SecurityException("El archivo ya existe");
 }
