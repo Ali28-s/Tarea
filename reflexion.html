@@ -93,7 +93,7 @@ if (data.length > 5 * 1024 * 1024) { // 5 MB
     throw new SecurityException("Archivo demasiado grande");
 }
 
-// Evitar sobrescritura
+//Evitar sobrescritura
 if (file.exists()) {
     throw new SecurityException("El archivo ya existe");
 }
